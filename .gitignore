@@ -13,7 +13,7 @@ drizzle/meta/
 
 # openGym runtime data and downloaded exercise media are not source files.
 data/
-media/
+/media/
 
 .vercel
 .env*
