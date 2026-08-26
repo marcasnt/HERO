@@ -9,7 +9,7 @@ export default function Home() {
   return (
     <main>
       <section className="hero">
-        <span className="eyebrow">OPEN GYM COACH</span>
+        <span className="eyebrow">HERO</span>
         <h1>Tu entrenamiento.<br />Tus clientes. Una sola vista.</h1>
         <p>Base preparada para Vercel, PostgreSQL y almacenamiento privado de fotografías.</p>
         <div className="actions"><a href="#modules">Ver arquitectura</a><button type="button" disabled>Acceso próximamente</button></div>

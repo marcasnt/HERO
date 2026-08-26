@@ -1,4 +1,4 @@
-# Configuración de Vercel
+# Configuración de HERO en Vercel
 
 ## 1. GitHub
 

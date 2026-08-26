@@ -1,6 +1,6 @@
-# Open Gym Coach
+# HERO
 
-Base full-stack preparada para desplegarse desde GitHub hacia Vercel.
+Plataforma de entrenamiento y seguimiento para coach y clientes, preparada para desplegarse desde GitHub hacia Vercel.
 
 ## Infraestructura
 

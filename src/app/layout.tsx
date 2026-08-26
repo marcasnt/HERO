@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./styles.css";
 
 export const metadata: Metadata = {
-  title: "Open Gym Coach",
+  title: "HERO",
   description: "Entrenamiento, seguimiento y progreso para coach y clientes",
 };
 
