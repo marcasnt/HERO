@@ -1,0 +1,19 @@
+node_modules/
+.next/
+.vercel/
+.DS_Store
+.agents/
+skills-lock.json
+*.tsbuildinfo
+.env
+.env.local
+.env.*.local
+drizzle/meta/
+*.log
+
+# openGym runtime data and downloaded exercise media are not source files.
+data/
+media/
+
+.vercel
+.env*
