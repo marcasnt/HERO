@@ -1,4 +1,4 @@
-import { SignedIn, SignedOut } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
 
 const features = [
@@ -8,7 +8,8 @@ const features = [
   ["Analíticas", "Adherencia, volumen, esfuerzo y evolución de fuerza."],
 ];
 
-export default function Home() {
+export default async function Home() {
+  const { userId } = await auth();
   return (
     <main>
       <section className="hero">
@@ -16,8 +17,7 @@ export default function Home() {
         <h1>Tu entrenamiento.<br />Tus clientes. Una sola vista.</h1>
         <p>Base preparada para Vercel, PostgreSQL y almacenamiento privado de fotografías.</p>
         <div className="actions">
-          <SignedIn><Link href="/dashboard">Ir a mi panel</Link></SignedIn>
-          <SignedOut><Link href="/sign-in">Entrar a HERO</Link><Link className="secondary" href="/sign-up">Crear cuenta</Link></SignedOut>
+          {userId ? <Link href="/dashboard">Ir a mi panel</Link> : <><Link href="/sign-in">Entrar a HERO</Link><Link className="secondary" href="/sign-up">Crear cuenta</Link></>}
         </div>
       </section>
       <section id="modules" className="grid">
