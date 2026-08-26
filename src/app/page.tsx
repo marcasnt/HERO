@@ -1,3 +1,6 @@
+import { SignedIn, SignedOut } from "@clerk/nextjs";
+import Link from "next/link";
+
 const features = [
   ["Rutinas", "Asigna planes versionados y revisa cada sesión."],
   ["Ejecución", "Compara lo prescrito con las series realizadas."],
@@ -12,7 +15,10 @@ export default function Home() {
         <span className="eyebrow">HERO</span>
         <h1>Tu entrenamiento.<br />Tus clientes. Una sola vista.</h1>
         <p>Base preparada para Vercel, PostgreSQL y almacenamiento privado de fotografías.</p>
-        <div className="actions"><Link href="/sign-in">Entrar a HERO</Link><Link className="secondary" href="/sign-up">Crear cuenta</Link></div>
+        <div className="actions">
+          <SignedIn><Link href="/dashboard">Ir a mi panel</Link></SignedIn>
+          <SignedOut><Link href="/sign-in">Entrar a HERO</Link><Link className="secondary" href="/sign-up">Crear cuenta</Link></SignedOut>
+        </div>
       </section>
       <section id="modules" className="grid">
         {features.map(([title, body]) => <article key={title}><span>0{features.findIndex(([item]) => item === title) + 1}</span><h2>{title}</h2><p>{body}</p></article>)}
@@ -21,4 +27,3 @@ export default function Home() {
     </main>
   );
 }
-import Link from "next/link";
