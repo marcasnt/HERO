@@ -6,6 +6,7 @@ import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { clientInvites, coachClients, measurements, messages, notifications, programAssignments, users, weeklyCheckins, workoutSessions } from "@/db/schema";
 import { requireCoach, requireUser } from "@/lib/auth";
+import { estimateBodyFat, type BodyFormula } from "@/lib/body-fat";
 
 function value(form: FormData, key: string) {
   return String(form.get(key) || "").trim();
@@ -144,11 +145,29 @@ export async function markNotificationsRead() {
 export async function addMeasurement(form: FormData) {
   const user = await requireUser();
   if (user.role !== "client") throw new Error("FORBIDDEN");
-  const weight = Number(value(form, "weight"));
-  const waist = Number(value(form, "waist"));
+  const number = (key: string) => Number(value(form, key));
+  const formula = value(form, "formula") as BodyFormula;
+  const heightCm = number("heightCm");
+  const neckCm = number("neckCm");
+  const waistCm = number("waistCm");
+  const hipCm = number("hipCm");
+  const bodyFat = estimateBodyFat({ formula, heightCm, neckCm, waistCm, hipCm });
+  if (!bodyFat) throw new Error("Revisa estatura, cuello, cintura y cadera");
   await getDb().insert(measurements).values({
     clientId: user.id,
-    values: { weight: Number.isFinite(weight) ? weight : null, waist: Number.isFinite(waist) ? waist : null },
+    values: {
+      formula,
+      weight: number("weight"),
+      heightCm,
+      neckCm,
+      waistCm,
+      hipCm,
+      leftArmCm: number("leftArmCm"),
+      rightArmCm: number("rightArmCm"),
+      leftThighCm: number("leftThighCm"),
+      rightThighCm: number("rightThighCm"),
+      bodyFat,
+    },
     notes: value(form, "notes"),
   });
   const [relation] = await getDb().select({ coachId: coachClients.coachId }).from(coachClients).where(eq(coachClients.clientId, user.id)).limit(1);
