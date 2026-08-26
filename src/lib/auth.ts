@@ -1,7 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { count, eq } from "drizzle-orm";
 import { getDb } from "@/db";
-import { coachClients, users } from "@/db/schema";
+import { users } from "@/db/schema";
 
 export type AppUser = { id: string; name: string; role: "coach" | "client" };
 
@@ -22,10 +22,6 @@ export async function requireUser(): Promise<AppUser> {
       role,
     }).onConflictDoNothing().returning();
     if (!row) [row] = await db.select().from(users).where(eq(users.clerkId, userId)).limit(1);
-    if (row?.role === "client") {
-      const [coach] = await db.select({ id: users.id }).from(users).where(eq(users.role, "coach")).limit(1);
-      if (coach) await db.insert(coachClients).values({ coachId: coach.id, clientId: row.id }).onConflictDoNothing();
-    }
   }
   if (!row || row.disabled) throw new Error("UNAUTHORIZED");
   return { id: row.id, name: row.name, role: row.role };

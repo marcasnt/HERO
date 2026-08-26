@@ -9,7 +9,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <Link className="brand" href="/dashboard">HERO</Link>
       <nav>
         <Link href="/dashboard">Resumen</Link>
-        {user.role === "coach" ? <Link href="/dashboard/routines">Crear rutina</Link> : <Link href="/dashboard/progress">Mi progreso</Link>}
+        {user.role === "coach" ? <><Link href="/dashboard/invitations">Invitar clientes</Link><Link href="/dashboard/routines">Crear rutina</Link></> : <Link href="/dashboard/progress">Mi progreso</Link>}
+        <Link href="/dashboard/calendar">Calendario</Link>
+        <Link href="/dashboard/messages">Mensajes</Link>
+        <Link href="/dashboard/notifications">Notificaciones</Link>
+        <Link href="/dashboard/profile">Mi perfil</Link>
       </nav>
       <div className="user-chip"><UserButton /><span><b>{user.name}</b><small>{user.role === "coach" ? "Entrenador" : "Cliente"}</small></span></div>
     </aside>
