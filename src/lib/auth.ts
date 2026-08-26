@@ -1,21 +1,32 @@
-import { createHash } from "node:crypto";
-import { and, eq, gt } from "drizzle-orm";
-import { cookies } from "next/headers";
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { count, eq } from "drizzle-orm";
 import { getDb } from "@/db";
-import { sessions, users } from "@/db/schema";
+import { coachClients, users } from "@/db/schema";
 
 export type AppUser = { id: string; name: string; role: "coach" | "client" };
 
 export async function requireUser(): Promise<AppUser> {
-  const token = (await cookies()).get("gym_session")?.value;
-  if (!token) throw new Error("UNAUTHORIZED");
-  const tokenHash = createHash("sha256").update(token).digest("hex");
-  const [row] = await getDb()
-    .select({ id: users.id, name: users.name, role: users.role, disabled: users.disabled })
-    .from(sessions)
-    .innerJoin(users, eq(users.id, sessions.userId))
-    .where(and(eq(sessions.tokenHash, tokenHash), gt(sessions.expiresAt, new Date())))
-    .limit(1);
+  const { userId } = await auth();
+  if (!userId) throw new Error("UNAUTHORIZED");
+  const db = getDb();
+  let [row] = await db.select().from(users).where(eq(users.clerkId, userId)).limit(1);
+  if (!row) {
+    const clerk = await currentUser();
+    if (!clerk) throw new Error("UNAUTHORIZED");
+    const [{ total }] = await db.select({ total: count() }).from(users);
+    const role = Number(total) === 0 ? "coach" : "client";
+    [row] = await db.insert(users).values({
+      clerkId: userId,
+      name: clerk.fullName || clerk.firstName || "Usuario HERO",
+      email: clerk.primaryEmailAddress?.emailAddress,
+      role,
+    }).onConflictDoNothing().returning();
+    if (!row) [row] = await db.select().from(users).where(eq(users.clerkId, userId)).limit(1);
+    if (row?.role === "client") {
+      const [coach] = await db.select({ id: users.id }).from(users).where(eq(users.role, "coach")).limit(1);
+      if (coach) await db.insert(coachClients).values({ coachId: coach.id, clientId: row.id }).onConflictDoNothing();
+    }
+  }
   if (!row || row.disabled) throw new Error("UNAUTHORIZED");
   return { id: row.id, name: row.name, role: row.role };
 }

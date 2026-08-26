@@ -17,6 +17,7 @@ export const workoutStatus = pgEnum("workout_status", ["scheduled", "in_progress
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
+  clerkId: text("clerk_id").notNull().unique(),
   name: text("name").notNull(),
   email: text("email"),
   role: userRole("role").notNull().default("client"),
