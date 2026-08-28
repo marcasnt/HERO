@@ -94,6 +94,10 @@ textarea { min-height:88px; resize:vertical; }
 .invite-list small { margin-top:4px; color:var(--muted); }
 .form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
 .builder-head { display:flex; align-items:center; justify-content:space-between; margin-top:8px; }
+.day-name-editor { display:grid; gap:14px; padding:18px; border:1px solid var(--line); border-radius:14px; background:#101310; }
+.day-name-editor h3,.day-name-editor p { margin:0; }
+.day-name-editor p { margin-top:5px; color:var(--muted); font-size:.78rem; }
+.day-name-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:9px; }
 .exercise-editor { display:grid; gap:12px; }
 .exercise-editor article { position:relative; min-height:0; display:grid; grid-template-columns:40px 1fr; gap:14px; padding:18px; border:1px solid var(--line); border-radius:14px; background:#101310; }
 .exercise-number { color:var(--accent); font-size:.75rem; font-weight:800; }
@@ -124,6 +128,16 @@ textarea { min-height:88px; resize:vertical; }
 .prescription-row input { padding:9px; }
 .prescription-row > span { color:var(--accent); font-size:.76rem; }
 .workout-log fieldset { margin:18px 0; padding:16px; border:1px solid var(--line); border-radius:12px; }
+.workout-days { display:grid; gap:10px; margin:18px 0; }
+.workout-day { overflow:hidden; border:1px solid var(--line); border-radius:14px; background:#101310; }
+.workout-day > summary { display:flex; align-items:center; justify-content:space-between; gap:18px; padding:18px; cursor:pointer; list-style:none; }
+.workout-day > summary::-webkit-details-marker { display:none; }
+.workout-day > summary span { display:grid; gap:4px; }
+.workout-day > summary small { color:var(--accent); font-size:.68rem; font-weight:800; text-transform:uppercase; }
+.workout-day > summary b { font-size:1.05rem; }
+.workout-day > summary i { color:var(--muted); font-size:.72rem; font-style:normal; }
+.workout-day[open] > summary { border-bottom:1px solid var(--line); background:#182017; }
+.day-exercises { padding:0 16px 4px; }
 .workout-log legend { display:grid; gap:3px; padding:0 8px; }
 .workout-log legend span { color:var(--accent); font-size:.68rem; font-weight:800; text-transform:uppercase; }
 .workout-log legend small,.exercise-note { color:var(--muted); }
@@ -179,5 +193,5 @@ textarea { min-height:88px; resize:vertical; }
 .measurement-row.header { color:var(--muted); font-size:.7rem; }
 .measurement-row strong { color:var(--accent); }
 @media (max-width:900px) { .app-shell{grid-template-columns:1fr}.sidebar{display:none}.mobile-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--line)}.dashboard{width:min(100% - 28px,1180px);padding-top:34px}.dashboard-grid{grid-template-columns:1fr}.photo-grid{grid-template-columns:repeat(3,1fr)} }
-@media (max-width:900px) { .exercise-fields{grid-template-columns:repeat(2,1fr)}.analytics-grid{grid-template-columns:1fr}.message-layout{grid-template-columns:1fr}.conversation-list{max-height:240px;overflow:auto} }
-@media (max-width:700px) { main{width:min(100% - 24px,1120px)} .hero{min-height:76vh} .grid{grid-template-columns:1fr} h1{font-size:clamp(3.2rem,16vw,5rem)} .actions{align-items:flex-start;flex-direction:column}.page-title{align-items:flex-start;flex-direction:column}.stats{grid-template-columns:1fr}.stats>div{min-height:105px}.photo-grid{grid-template-columns:repeat(2,1fr)}.client-list a{grid-template-columns:44px 1fr}.client-list i{display:none}.form-row,.measure-grid,.picker-filters{grid-template-columns:1fr}.exercise-editor article{grid-template-columns:1fr}.exercise-fields{grid-template-columns:1fr 1fr}.prescription{overflow-x:auto}.prescription-head,.prescription-row{min-width:520px}.invite-list>div{grid-template-columns:1fr auto}.invite-list form{display:none}.message-form{grid-template-columns:1fr}.message-form .button{justify-self:start} }
+@media (max-width:900px) { .exercise-fields{grid-template-columns:repeat(2,1fr)}.day-name-grid{grid-template-columns:repeat(2,1fr)}.analytics-grid{grid-template-columns:1fr}.message-layout{grid-template-columns:1fr}.conversation-list{max-height:240px;overflow:auto} }
+@media (max-width:700px) { main{width:min(100% - 24px,1120px)} .hero{min-height:76vh} .grid{grid-template-columns:1fr} h1{font-size:clamp(3.2rem,16vw,5rem)} .actions{align-items:flex-start;flex-direction:column}.page-title{align-items:flex-start;flex-direction:column}.stats{grid-template-columns:1fr}.stats>div{min-height:105px}.photo-grid{grid-template-columns:repeat(2,1fr)}.client-list a{grid-template-columns:44px 1fr}.client-list i{display:none}.form-row,.measure-grid,.picker-filters,.day-name-grid{grid-template-columns:1fr}.exercise-editor article{grid-template-columns:1fr}.exercise-fields{grid-template-columns:1fr 1fr}.prescription{overflow-x:auto}.prescription-head,.prescription-row{min-width:520px}.workout-day>summary{align-items:flex-start;flex-direction:column}.invite-list>div{grid-template-columns:1fr auto}.invite-list form{display:none}.message-form{grid-template-columns:1fr}.message-form .button{justify-self:start} }

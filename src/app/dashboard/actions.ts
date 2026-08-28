@@ -20,12 +20,14 @@ export async function createRoutine(form: FormData) {
   if (!relation) throw new Error("FORBIDDEN");
   let exercises: Array<{ name: string; day: string; sets: number; reps: string; series?: Array<{ reps: string; weight: number | null }>; rest: number; rir: number; notes?: string }> = [];
   try { exercises = JSON.parse(value(form, "definition")); } catch { throw new Error("Rutina inválida"); }
+  let dayNames: Record<string, string> = {};
+  try { dayNames = JSON.parse(value(form, "dayNames") || "{}"); } catch { throw new Error("Nombres de sesión inválidos"); }
   if (!exercises.length) throw new Error("Agrega al menos un ejercicio");
   await getDb().insert(programAssignments).values({
     coachId: coach.id,
     clientId,
     name: value(form, "name") || "Rutina HERO",
-    definition: { exercises },
+    definition: { exercises, dayNames },
     startsOn: new Date(),
   });
   await getDb().insert(notifications).values({ userId: clientId, title: "Nueva rutina asignada", body: value(form, "name") || "Rutina HERO", href: "/dashboard" });
@@ -38,8 +40,10 @@ export async function updateRoutine(form: FormData) {
   const assignmentId = value(form, "assignmentId");
   let exercises: Array<{ name: string; day: string; sets: number; reps: string; series?: Array<{ reps: string; weight: number | null }>; rest: number; rir: number; notes?: string }> = [];
   try { exercises = JSON.parse(value(form, "definition")); } catch { throw new Error("Rutina inválida"); }
+  let dayNames: Record<string, string> = {};
+  try { dayNames = JSON.parse(value(form, "dayNames") || "{}"); } catch { throw new Error("Nombres de sesión inválidos"); }
   if (!exercises.length) throw new Error("Agrega al menos un ejercicio");
-  await getDb().update(programAssignments).set({ name: value(form, "name"), definition: { exercises }, version: 2 })
+  await getDb().update(programAssignments).set({ name: value(form, "name"), definition: { exercises, dayNames }, version: 2 })
     .where(and(eq(programAssignments.id, assignmentId), eq(programAssignments.coachId, coach.id)));
   revalidatePath(`/dashboard/routines/${assignmentId}`);
   revalidatePath("/dashboard");
