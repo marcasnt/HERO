@@ -9,7 +9,11 @@ const imageBase = "https://cdn.jsdelivr.net/gh/hasaneyldrm/exercises-dataset@745
 export function ExercisePicker({ value, onSelect }: { value: string; onSelect: (exercise: PickedExercise) => void }) {
   const [open, setOpen] = useState(!value);
   const [query, setQuery] = useState("");
+  const [bodyPart, setBodyPart] = useState("");
   const [items, setItems] = useState<PickedExercise[]>([]);
+  const [bodyParts, setBodyParts] = useState<string[]>([]);
+  const [nextOffset, setNextOffset] = useState<number | null>(null);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   useEffect(() => {
     if (!open) return;
@@ -17,13 +21,26 @@ export function ExercisePicker({ value, onSelect }: { value: string; onSelect: (
     const timer = setTimeout(async () => {
       setLoading(true);
       try {
-        const response = await fetch(`/api/exercises?q=${encodeURIComponent(query)}`, { signal: controller.signal });
+        const response = await fetch(`/api/exercises?q=${encodeURIComponent(query)}&bodyPart=${encodeURIComponent(bodyPart)}&offset=0&limit=30`, { signal: controller.signal });
         const data = await response.json();
         setItems(data.exercises || []);
+        setBodyParts(data.bodyParts || []);
+        setNextOffset(data.nextOffset);
+        setTotal(data.filteredTotal || 0);
       } finally { setLoading(false); }
     }, 180);
     return () => { clearTimeout(timer); controller.abort(); };
-  }, [query, open]);
+  }, [query, bodyPart, open]);
+  async function loadMore() {
+    if (nextOffset === null) return;
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/exercises?q=${encodeURIComponent(query)}&bodyPart=${encodeURIComponent(bodyPart)}&offset=${nextOffset}&limit=30`);
+      const data = await response.json();
+      setItems((current) => [...current, ...(data.exercises || [])]);
+      setNextOffset(data.nextOffset);
+    } finally { setLoading(false); }
+  }
   if (!open) return <button className="exercise-selected" type="button" onClick={() => setOpen(true)}><b>{value}</b><span>Cambiar ejercicio</span></button>;
-  return <div className="exercise-picker"><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar ejercicio, músculo o equipo..."/><div className="exercise-results">{loading ? <span className="picker-status">Buscando…</span> : items.map((exercise) => <button type="button" key={exercise.id} onClick={() => { onSelect(exercise); setOpen(false); }}><Image unoptimized width={58} height={58} src={imageBase + exercise.image} alt=""/><span><b>{exercise.name}</b><small>{exercise.target} · {exercise.equipment}</small></span></button>)}</div>{value && <button className="link-button" type="button" onClick={() => setOpen(false)}>Cancelar</button>}</div>;
+  return <div className="exercise-picker"><div className="picker-filters"><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar ejercicio, músculo o equipo..."/><select value={bodyPart} onChange={(event) => setBodyPart(event.target.value)}><option value="">Todos los grupos musculares</option>{bodyParts.map((part) => <option value={part} key={part}>{part}</option>)}</select></div><div className="exercise-results"><div className="picker-count">{items.length} de {total} ejercicios</div>{items.map((exercise) => <button type="button" key={exercise.id} onClick={() => { onSelect(exercise); setOpen(false); }}><Image unoptimized width={58} height={58} src={imageBase + exercise.image} alt=""/><span><b>{exercise.name}</b><small>{exercise.bodyPart} · {exercise.target} · {exercise.equipment}</small></span></button>)}{loading && <span className="picker-status">Cargando…</span>}{nextOffset !== null && !loading && <button className="load-more" type="button" onClick={loadMore}>Mostrar 30 más</button>}{!items.length && !loading && <span className="picker-status">No hay coincidencias.</span>}</div>{value && <button className="link-button" type="button" onClick={() => setOpen(false)}>Cancelar</button>}</div>;
 }

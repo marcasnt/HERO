@@ -18,7 +18,7 @@ export async function createRoutine(form: FormData) {
   const [relation] = await getDb().select({ id: coachClients.id }).from(coachClients)
     .where(and(eq(coachClients.coachId, coach.id), eq(coachClients.clientId, clientId))).limit(1);
   if (!relation) throw new Error("FORBIDDEN");
-  let exercises: Array<{ name: string; day: string; sets: number; reps: string; rest: number; rir: number; notes?: string }> = [];
+  let exercises: Array<{ name: string; day: string; sets: number; reps: string; series?: Array<{ reps: string; weight: number | null }>; rest: number; rir: number; notes?: string }> = [];
   try { exercises = JSON.parse(value(form, "definition")); } catch { throw new Error("Rutina inválida"); }
   if (!exercises.length) throw new Error("Agrega al menos un ejercicio");
   await getDb().insert(programAssignments).values({
@@ -36,7 +36,7 @@ export async function createRoutine(form: FormData) {
 export async function updateRoutine(form: FormData) {
   const coach = await requireCoach();
   const assignmentId = value(form, "assignmentId");
-  let exercises: Array<{ name: string; day: string; sets: number; reps: string; rest: number; rir: number; notes?: string }> = [];
+  let exercises: Array<{ name: string; day: string; sets: number; reps: string; series?: Array<{ reps: string; weight: number | null }>; rest: number; rir: number; notes?: string }> = [];
   try { exercises = JSON.parse(value(form, "definition")); } catch { throw new Error("Rutina inválida"); }
   if (!exercises.length) throw new Error("Agrega al menos un ejercicio");
   await getDb().update(programAssignments).set({ name: value(form, "name"), definition: { exercises }, version: 2 })
@@ -53,10 +53,12 @@ export async function completeWorkout(form: FormData) {
     .where(and(eq(programAssignments.id, assignmentId), eq(programAssignments.clientId, user.id))).limit(1);
   if (!assignment) throw new Error("FORBIDDEN");
   const now = new Date();
-  const prescribed = assignment.definition as { exercises?: Array<{ name: string; sets: number }> };
+  const prescribed = assignment.definition as { exercises?: Array<{ name: string; sets: number; series?: Array<{ reps: string; weight: number | null }> }> };
   const exercises = (prescribed.exercises || []).map((exercise, exerciseIndex) => ({
     name: exercise.name,
-    sets: Array.from({ length: exercise.sets }, (_, setIndex) => ({
+    sets: Array.from({ length: exercise.series?.length || exercise.sets }, (_, setIndex) => ({
+      prescribedReps: exercise.series?.[setIndex]?.reps || null,
+      prescribedWeight: exercise.series?.[setIndex]?.weight ?? null,
       weight: Number(value(form, `weight-${exerciseIndex}-${setIndex}`)) || 0,
       reps: Number(value(form, `reps-${exerciseIndex}-${setIndex}`)) || 0,
       rpe: Number(value(form, `rpe-${exerciseIndex}-${setIndex}`)) || null,
