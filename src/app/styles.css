@@ -294,10 +294,10 @@ label { gap:7px; color:#aeb4ad; font-size:.7rem; font-weight:700; letter-spacing
 }
 
 @media (max-width:700px) {
-  .stats { grid-template-columns:repeat(3,1fr); }
-  .stats > div { min-height:86px; padding:8px 18px; }
+  .stats { grid-template-columns:repeat(3,minmax(0,1fr)); overflow:visible; }
+  .stats > div { min-width:0; min-height:86px; padding:8px 12px; }
   .stats > div:first-child { padding-left:0; }
-  .stats span { font-size:.62rem; }
+  .stats span { max-width:90px; font-size:.56rem; line-height:1.25; }
   .stats strong { font-size:2.3rem; }
   .workout-day > summary { align-items:flex-start; }
   .exercise-fields { gap:12px; }
