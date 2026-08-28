@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "HERO",
   description: "Entrenamiento, seguimiento y progreso para coach y clientes",
   applicationName: "HERO",
-  manifest: "/manifest.webmanifest",
+  manifest: "/manifest.json",
   appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "HERO" },
   icons: { icon: "/hero-icon-192.png", apple: "/hero-icon-192.png" },
 };
