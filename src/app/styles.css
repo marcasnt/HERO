@@ -100,11 +100,30 @@ textarea { min-height:88px; resize:vertical; }
 .exercise-fields { display:grid; grid-template-columns:2fr 1fr repeat(4,.7fr); gap:10px; }
 .exercise-fields label { min-width:0; }
 .exercise-fields .wide { grid-column:1/-1; }
+.exercise-fields .exercise-choice { grid-column:span 2; }
+.exercise-choice > small { color:var(--accent); text-transform:capitalize; }
+.exercise-selected { min-height:45px; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 12px; border:1px solid #567841; border-radius:10px; background:#151d12; color:var(--text); text-align:left; cursor:pointer; }
+.exercise-selected span { color:var(--accent); font-size:.7rem; }
+.exercise-picker { position:relative; }
+.exercise-results { position:absolute; z-index:20; top:calc(100% + 6px); left:0; width:min(480px,80vw); max-height:330px; overflow:auto; padding:6px; border:1px solid var(--line); border-radius:12px; background:#0d100e; box-shadow:0 20px 60px rgba(0,0,0,.55); }
+.exercise-results button { width:100%; display:flex; align-items:center; gap:11px; padding:8px; border:0; border-radius:9px; background:transparent; color:var(--text); text-align:left; cursor:pointer; }
+.exercise-results button:hover { background:var(--panel); }
+.exercise-results img { flex:0 0 auto; border-radius:8px; object-fit:cover; background:#fff; }
+.exercise-results button span { display:grid; gap:3px; text-transform:capitalize; }
+.exercise-results small,.picker-status { color:var(--muted); font-size:.7rem; }
+.picker-status { display:block; padding:18px; }
+.link-button { width:auto; margin-top:7px; border:0; background:none; color:var(--muted); cursor:pointer; }
 .remove-exercise { position:absolute; top:8px; right:8px; width:auto; border:0; background:none; color:#ff8f8f; cursor:pointer; font-size:.72rem; }
 .workout-log fieldset { margin:18px 0; padding:16px; border:1px solid var(--line); border-radius:12px; }
 .workout-log legend { display:grid; gap:3px; padding:0 8px; }
 .workout-log legend span { color:var(--accent); font-size:.68rem; font-weight:800; text-transform:uppercase; }
 .workout-log legend small,.exercise-note { color:var(--muted); }
+.exercise-media { position:relative; width:min(100%,420px); margin:8px auto 16px; overflow:hidden; border-radius:14px; background:#fff; }
+.exercise-media img { display:block; width:100%; height:auto; }
+.exercise-media span { position:absolute; inset:auto 0 0; padding:30px 12px 10px; background:linear-gradient(transparent,rgba(0,0,0,.78)); color:#fff; font-size:.72rem; text-transform:capitalize; }
+.exercise-steps { margin:10px 0 16px; color:var(--muted); font-size:.8rem; }
+.exercise-steps summary { color:var(--accent); cursor:pointer; }
+.exercise-steps li { margin:7px 0; line-height:1.45; }
 .set-table { display:grid; grid-template-columns:45px repeat(3,1fr); gap:7px; align-items:center; }
 .set-table > span { color:var(--muted); font-size:.7rem; }
 .set-row { display:contents; }
