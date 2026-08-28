@@ -14,5 +14,5 @@ export function GET(request: Request) {
   });
   const matches = filtered.slice(offset, offset + limit).map((exercise) => ({ id: exercise.id, name: spanishExerciseName(exercise.n), originalName: exercise.n, bodyPart: translateExerciseTerm(exercise.bp), target: translateExerciseTerm(exercise.tg), equipment: translateExerciseTerm(exercise.eq), image: exercise.img, gif: exercise.gif, steps: spanishInstructions[exercise.id] || exercise.st }));
   const bodyParts = [...new Set(exerciseCatalog.map((exercise) => exercise.bp))].sort().map((value) => ({ value, label: bodyPartSpanish[value] || value }));
-  return Response.json({ exercises: matches, total: exerciseCatalog.length, filteredTotal: filtered.length, bodyParts, nextOffset: offset + matches.length < filtered.length ? offset + matches.length : null }, { headers: { "Cache-Control": "public, s-maxage=3600" } });
+  return Response.json({ exercises: matches, total: exerciseCatalog.length, filteredTotal: filtered.length, bodyParts, nextOffset: offset + matches.length < filtered.length ? offset + matches.length : null }, { headers: { "Cache-Control": "no-store" } });
 }

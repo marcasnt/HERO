@@ -30,7 +30,7 @@ export function ExercisePicker({ value, onSelect }: { value: string; onSelect: (
     const timer = setTimeout(async () => {
       setLoading(true);
       try {
-        const response = await fetch(`/api/exercises?q=${encodeURIComponent(query)}&bodyPart=${encodeURIComponent(bodyPart)}&offset=0&limit=30`, { signal: controller.signal });
+        const response = await fetch(`/api/exercises?v=2&q=${encodeURIComponent(query)}&bodyPart=${encodeURIComponent(bodyPart)}&offset=0&limit=30`, { signal: controller.signal });
         const data = await response.json();
         setItems(data.exercises || []);
         setBodyParts(data.bodyParts || []);
@@ -44,7 +44,7 @@ export function ExercisePicker({ value, onSelect }: { value: string; onSelect: (
     if (nextOffset === null) return;
     setLoading(true);
     try {
-      const response = await fetch(`/api/exercises?q=${encodeURIComponent(query)}&bodyPart=${encodeURIComponent(bodyPart)}&offset=${nextOffset}&limit=30`);
+      const response = await fetch(`/api/exercises?v=2&q=${encodeURIComponent(query)}&bodyPart=${encodeURIComponent(bodyPart)}&offset=${nextOffset}&limit=30`);
       const data = await response.json();
       setItems((current) => [...current, ...(data.exercises || [])]);
       setNextOffset(data.nextOffset);
