@@ -287,7 +287,8 @@ label { gap:7px; color:#aeb4ad; font-size:.7rem; font-weight:700; letter-spacing
   .stats strong { font-size:2.8rem; }
   .panel { padding:20px; border-radius:18px; }
   .mobile-nav { inset:auto 12px 12px; min-height:66px; align-items:center; padding:8px 6px; border-color:rgba(156,255,69,.18); border-radius:16px; background:rgba(9,12,10,.95); box-shadow:0 18px 60px rgba(0,0,0,.58); }
-  .mobile-nav a { position:relative; min-width:56px; padding:10px 5px; color:#7f867f; font-size:.61rem; letter-spacing:.015em; text-align:center; }
+  .mobile-nav a { position:relative; min-width:56px; display:grid; justify-items:center; gap:4px; padding:7px 5px; color:#7f867f; font-size:.61rem; letter-spacing:.015em; text-align:center; }
+  .mobile-nav a svg { display:block; }
   .mobile-nav a:hover,.mobile-nav a:focus-visible { color:var(--accent); }
   .message-layout { gap:14px; }
   .conversation-list { max-height:210px; }

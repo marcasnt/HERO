@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
+import { CalendarBlank, ChartLineUp, ChatCircle, House, UserCircle } from "@phosphor-icons/react/dist/ssr";
 import { requireUser } from "@/lib/auth";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -17,6 +18,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
       </nav>
       <div className="user-chip"><UserButton /><span><b>{user.name}</b><small>{user.role === "coach" ? "Entrenador" : "Cliente"}</small></span></div>
     </aside>
-    <div className="app-content"><header className="mobile-head"><Link className="brand" href="/dashboard">HERO</Link><UserButton /></header>{children}<nav className="mobile-nav"><Link href="/dashboard">Resumen</Link>{user.role === "client" && <Link href="/dashboard/progress">Progreso</Link>}<Link href="/dashboard/calendar">Calendario</Link><Link href="/dashboard/messages">Mensajes</Link><Link href="/dashboard/profile">Perfil</Link></nav></div>
+    <div className="app-content"><header className="mobile-head"><Link className="brand" href="/dashboard">HERO</Link><UserButton /></header>{children}<nav className="mobile-nav" aria-label="Navegación principal"><Link href="/dashboard"><House size={22} weight="bold"/><span>Resumen</span></Link>{user.role === "client" && <Link href="/dashboard/progress"><ChartLineUp size={22} weight="bold"/><span>Progreso</span></Link>}<Link href="/dashboard/calendar"><CalendarBlank size={22} weight="bold"/><span>Calendario</span></Link><Link href="/dashboard/messages"><ChatCircle size={22} weight="bold"/><span>Mensajes</span></Link><Link href="/dashboard/profile"><UserCircle size={22} weight="bold"/><span>Perfil</span></Link></nav></div>
   </div>;
 }
