@@ -17,6 +17,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
       </nav>
       <div className="user-chip"><UserButton /><span><b>{user.name}</b><small>{user.role === "coach" ? "Entrenador" : "Cliente"}</small></span></div>
     </aside>
-    <div className="app-content"><header className="mobile-head"><Link className="brand" href="/dashboard">HERO</Link><UserButton /></header>{children}</div>
+    <div className="app-content"><header className="mobile-head"><Link className="brand" href="/dashboard">HERO</Link><UserButton /></header>{children}<nav className="mobile-nav"><Link href="/dashboard">Resumen</Link>{user.role === "client" && <Link href="/dashboard/progress">Progreso</Link>}<Link href="/dashboard/calendar">Calendario</Link><Link href="/dashboard/messages">Mensajes</Link><Link href="/dashboard/profile">Perfil</Link></nav></div>
   </div>;
 }
