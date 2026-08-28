@@ -1,7 +1,7 @@
 import { desc, eq } from "drizzle-orm";
 import Image from "next/image";
 import { getDb } from "@/db";
-import { measurements, mediaAssets } from "@/db/schema";
+import { measurements, mediaAssets, workoutSessions } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { addMeasurement } from "../actions";
 import { UploadForm } from "./upload-form";
@@ -11,11 +11,17 @@ export default async function ProgressPage() {
   const user = await requireUser();
   if (user.role !== "client") return <main className="dashboard"><div className="empty">Esta sección corresponde al cliente.</div></main>;
   const db = getDb();
-  const [photos, measures] = await Promise.all([
+  const [photos, measures, sessions] = await Promise.all([
     db.select().from(mediaAssets).where(eq(mediaAssets.ownerId, user.id)).orderBy(desc(mediaAssets.createdAt)),
     db.select().from(measurements).where(eq(measurements.clientId, user.id)).orderBy(desc(measurements.measuredAt)).limit(20),
+    db.select().from(workoutSessions).where(eq(workoutSessions.clientId, user.id)).orderBy(desc(workoutSessions.completedAt)).limit(500),
   ]);
-  return <main className="dashboard"><div className="page-title"><div><span className="kicker">MI EVOLUCIÓN</span><h1>Progreso</h1><p>Registra datos y fotografías que solo tú y tu entrenador pueden ver.</p></div></div>
+  const now = new Date();
+  const monthCount = sessions.filter((session) => session.completedAt && session.completedAt.getMonth() === now.getMonth() && session.completedAt.getFullYear() === now.getFullYear()).length;
+  const latest = measures[0]?.values as Record<string, number> | undefined;
+  const activityDays = new Set(sessions.filter((session) => session.completedAt).map((session) => session.completedAt!.toISOString().slice(0, 10)));
+  const activity = Array.from({ length: 364 }, (_, index) => { const date = new Date(now); date.setDate(now.getDate() - (363 - index)); return { date: date.toISOString().slice(0, 10), active: activityDays.has(date.toISOString().slice(0, 10)) }; });
+  return <main className="dashboard"><div className="page-title"><div><span className="kicker">MI EVOLUCIÓN</span><h1>Progreso</h1><p>Registra datos y fotografías que solo tú y tu entrenador pueden ver.</p></div></div><section className="progress-overview"><div><span>Entrenos</span><strong>{sessions.length}</strong></div><div><span>Este mes</span><strong>{monthCount}</strong></div><div><span>Racha semanal</span><strong>{sessions.length ? 1 : 0}</strong></div><div><span>Peso actual</span><strong>{latest?.weight ? `${latest.weight} kg` : "—"}</strong></div></section><section className="panel activity-panel"><div className="panel-head"><h2>Actividad · últimos 12 meses</h2><span>{activityDays.size} días entrenados</span></div><div className="activity-heatmap" aria-label="Actividad de entrenamiento de los últimos 12 meses">{activity.map((day) => <i className={day.active ? "active" : ""} title={day.date} key={day.date}/>)}</div><div className="heat-legend"><span>Menos</span><i/><i className="active"/><span>Más</span></div></section>
     <section className="dashboard-grid"><div className="panel"><div className="panel-head"><h2>Nueva fotografía</h2><span>Máx. 10 MB</span></div><UploadForm/></div>
       <div className="panel"><div className="panel-head"><h2>Nueva medición corporal</h2></div><form className="form-stack" action={addMeasurement}><label>Fórmula antropométrica<select name="formula" required><option value="male">Hombre</option><option value="female">Mujer</option></select></label><div className="measure-grid"><label>Peso (kg)<input name="weight" type="number" min="25" max="350" step="0.1" required/></label><label>Estatura (cm)<input name="heightCm" type="number" min="100" max="250" step="0.1" required/></label><label>Cuello (cm)<input name="neckCm" type="number" min="20" max="80" step="0.1" required/></label><label>Cintura / abdomen (cm)<input name="waistCm" type="number" min="40" max="250" step="0.1" required/></label><label>Cadera (cm)<input name="hipCm" type="number" min="40" max="250" step="0.1" required/></label><label>Brazo izquierdo (cm)<input name="leftArmCm" type="number" min="10" max="100" step="0.1" required/></label><label>Brazo derecho (cm)<input name="rightArmCm" type="number" min="10" max="100" step="0.1" required/></label><label>Pierna izquierda (cm)<input name="leftThighCm" type="number" min="20" max="150" step="0.1" required/></label><label>Pierna derecha (cm)<input name="rightThighCm" type="number" min="20" max="150" step="0.1" required/></label></div><label>Notas<textarea name="notes" placeholder="Hora, ayuno, condiciones de medición..."/></label><p className="formula-note">La grasa corporal es una estimación orientativa por circunferencias. No sustituye DEXA, evaluación médica ni diagnóstico nutricional.</p><button className="button" type="submit">Calcular y guardar</button></form></div>
     </section>

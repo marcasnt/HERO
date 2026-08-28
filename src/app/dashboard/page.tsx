@@ -1,22 +1,12 @@
 import Link from "next/link";
-import Image from "next/image";
 import { and, count, desc, eq } from "drizzle-orm";
 import { getDb } from "@/db";
-import { coachClients, programAssignments, users, weeklyCheckins, workoutSessions } from "@/db/schema";
+import { coachClients, measurements, programAssignments, users, weeklyCheckins, workoutSessions } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
-import { spanishInstructions } from "@/lib/exercise-catalog";
-import { completeWorkout, submitCheckin } from "./actions";
+import { submitCheckin } from "./actions";
 
-type RoutineExercise = { id?: string; name: string; day?: string; sets: number; reps: string; series?: Array<{ reps: string; weight: number | null }>; rest?: number; rir?: number; notes?: string; gif?: string; target?: string; equipment?: string; steps?: string[] };
+type RoutineExercise = { name: string; day?: string };
 type Routine = { exercises?: RoutineExercise[]; dayNames?: Record<string, string> };
-const exerciseGifBase = "https://cdn.jsdelivr.net/gh/hasaneyldrm/exercises-dataset@7455efae41b330c265e7cd4b78dfa848e7ce5ebd/videos/";
-const weekDays = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
-
-function ExerciseLog({ exercise, exerciseIndex }: { exercise: RoutineExercise; exerciseIndex: number }) {
-  const prescribedSeries = exercise.series?.length ? exercise.series : Array.from({ length: exercise.sets }, () => ({ reps: exercise.reps, weight: null }));
-  const steps = (exercise.id && spanishInstructions[exercise.id]) || exercise.steps || [];
-  return <fieldset><legend><b>{exercise.name}</b><small>{prescribedSeries.length} series · {exercise.rest || 90}s después de cada serie · RIR {exercise.rir ?? 2}</small></legend>{exercise.gif && <div className="exercise-media"><Image unoptimized width={420} height={280} src={exerciseGifBase + exercise.gif} alt={`Ejecución de ${exercise.name}`}/><span>{exercise.target}{exercise.equipment ? ` · ${exercise.equipment}` : ""}</span></div>}{exercise.notes && <p className="exercise-note">{exercise.notes}</p>}{steps.length ? <details className="exercise-steps"><summary>Cómo ejecutar el ejercicio</summary><ol>{steps.map((step, index) => <li key={index}>{step}</li>)}</ol></details> : null}<div className="set-table"><span>Serie</span><span>Peso kg</span><span>Reps</span><span>RPE</span>{prescribedSeries.map((prescribed, setIndex) => <div className="set-row" key={setIndex}><b>{setIndex + 1}<small>{prescribed.weight !== null ? `${prescribed.weight}kg` : "libre"} × {prescribed.reps}</small></b><input aria-label={`Peso serie ${setIndex + 1}`} name={`weight-${exerciseIndex}-${setIndex}`} type="number" min="0" step="0.5" placeholder={prescribed.weight !== null ? String(prescribed.weight) : "kg"}/><input aria-label={`Repeticiones serie ${setIndex + 1}`} name={`reps-${exerciseIndex}-${setIndex}`} type="number" min="0" placeholder={prescribed.reps}/><input aria-label={`RPE serie ${setIndex + 1}`} name={`rpe-${exerciseIndex}-${setIndex}`} type="number" min="1" max="10" step="0.5"/></div>)}</div></fieldset>;
-}
 
 export default async function Dashboard() {
   const user = await requireUser();
@@ -35,12 +25,20 @@ export default async function Dashboard() {
     </main>;
   }
 
-  const assignments = await db.select().from(programAssignments).where(and(eq(programAssignments.clientId, user.id), eq(programAssignments.active, true))).orderBy(desc(programAssignments.createdAt));
-  const sessions = await db.select().from(workoutSessions).where(eq(workoutSessions.clientId, user.id)).orderBy(desc(workoutSessions.completedAt)).limit(5);
-  return <main className="dashboard"><div className="page-title"><div><span className="kicker">MI ENTRENAMIENTO</span><h1>Vamos, {user.name.split(" ")[0]}</h1><p>Registra cada sesión y construye evidencia de tu progreso.</p></div><Link className="button" href="/dashboard/progress">Subir progreso</Link></div>
-    <section className="stats"><div><span>Rutinas activas</span><strong>{assignments.length}</strong></div><div><span>Sesiones completadas</span><strong>{sessions.length}</strong></div><div><span>Estado</span><strong className="status-good">Activo</strong></div></section>
-    <section className="dashboard-grid"><div className="panel"><div className="panel-head"><h2>Rutina y registro</h2></div>{assignments.length ? assignments.map((assignment) => { const routine = assignment.definition as Routine; const exercises = routine.exercises || []; const activeDays = weekDays.filter((day) => exercises.some((exercise) => (exercise.day || "Lunes") === day)); return <div className="routine workout-log" key={assignment.id}><h3>{assignment.name}</h3><form action={completeWorkout}><input type="hidden" name="assignmentId" value={assignment.id}/><div className="workout-days">{activeDays.map((day) => { const dayExercises = exercises.map((exercise, index) => ({ exercise, index })).filter((item) => (item.exercise.day || "Lunes") === day); return <details className="workout-day" key={day}><summary><span><small>{day}</small><b>{routine.dayNames?.[day] || `Entrenamiento de ${day}`}</b></span><i>{dayExercises.length} ejercicios · Abrir →</i></summary><div className="day-exercises">{dayExercises.map(({ exercise, index }) => <ExerciseLog exercise={exercise} exerciseIndex={index} key={`${exercise.name}-${index}`}/>)}</div></details>; })}</div><textarea name="feedback" placeholder="¿Cómo te sentiste? (opcional)"/><button className="button" type="submit">Completar y guardar sesión</button></form></div>; }) : <div className="empty"><b>Tu entrenador aún no asignó una rutina</b></div>}</div>
-      <div className="panel"><div className="panel-head"><h2>Check-in semanal</h2></div><form className="form-stack" action={submitCheckin}><label>Energía<select name="energy"><option>Alta</option><option>Media</option><option>Baja</option></select></label><label>Sueño<select name="sleep"><option>Excelente</option><option>Bueno</option><option>Regular</option><option>Malo</option></select></label><label>Notas<textarea name="notes" placeholder="Dolores, avances o dificultades"/></label><button className="button" type="submit">Enviar check-in</button></form></div>
-    </section>
-  </main>;
+  const [assignments, sessions, recentMeasures] = await Promise.all([
+    db.select().from(programAssignments).where(and(eq(programAssignments.clientId, user.id), eq(programAssignments.active, true))).orderBy(desc(programAssignments.createdAt)),
+    db.select().from(workoutSessions).where(eq(workoutSessions.clientId, user.id)).orderBy(desc(workoutSessions.completedAt)).limit(100),
+    db.select().from(measurements).where(eq(measurements.clientId, user.id)).orderBy(desc(measurements.measuredAt)).limit(12),
+  ]);
+  const now = new Date();
+  const today = now.toLocaleDateString("es-NI", { weekday: "long", timeZone: "America/Managua" });
+  const todayName = today[0].toUpperCase() + today.slice(1);
+  const firstRoutine = assignments[0]?.definition as Routine | undefined;
+  const todayExercises = (firstRoutine?.exercises || []).filter((exercise) => (exercise.day || "Lunes") === todayName);
+  const sessionName = firstRoutine?.dayNames?.[todayName] || (todayExercises.length ? assignments[0].name : "Descanso y recuperación");
+  const latest = recentMeasures[0]?.values as Record<string, number> | undefined;
+  const weekStart = new Date(now); weekStart.setDate(now.getDate() - ((now.getDay() + 6) % 7)); weekStart.setHours(0, 0, 0, 0);
+  const weekSessions = sessions.filter((session) => session.completedAt && session.completedAt >= weekStart).length;
+  const weekDates = Array.from({ length: 7 }, (_, index) => { const date = new Date(weekStart); date.setDate(weekStart.getDate() + index); return date; });
+  return <main className="dashboard client-home"><div className="client-home-head"><div><span className="kicker">{now.toLocaleDateString("es-NI", { weekday: "long", day: "numeric", month: "long", timeZone: "America/Managua" })}</span><h1>Vamos, {user.name.split(" ")[0]}</h1></div><Link className="mini-button" href="/dashboard/settings">Ajustes</Link></div><section className="panel home-week"><div className="week-label"><b>Esta semana</b><span>{weekSessions} sesiones completadas</span></div><div className="week-strip">{weekDates.map((date) => { const day = date.toLocaleDateString("es", { weekday: "short" }).slice(0, 2); const done = sessions.some((session) => session.completedAt?.toDateString() === date.toDateString()); const isToday = date.toDateString() === now.toDateString(); return <div className={isToday ? "today" : done ? "done" : ""} key={date.toISOString()}><small>{day}</small><b>{date.getDate()}</b><i/></div>; })}</div><div className="today-workout"><span><small>HOY</small><b>{sessionName}</b><em>{todayExercises.length ? `${todayExercises.length} ejercicios asignados` : "Sin entrenamiento programado"}</em></span>{todayExercises.length ? <Link className="button" href="/dashboard/workout">Seguir</Link> : <Link className="mini-button" href="/dashboard/plan">Ver plan</Link>}</div></section><section className="home-cards"><div className="panel weight-summary"><div><span>Peso corporal</span><Link href="/dashboard/progress">Registrar +</Link></div><strong>{latest?.weight ? `${latest.weight} kg` : "—"}</strong><small>{latest?.bodyFat ? `${latest.bodyFat}% de grasa estimada` : "Registra tu primera medición"}</small><div className="weight-points">{recentMeasures.slice().reverse().map((measure) => { const data = measure.values as Record<string, number>; return <i style={{ height: `${Math.max(12, Math.min(100, (data.weight || 0) / 1.2))}%` }} key={measure.id}/>; })}</div></div><div className="panel streak-card"><span className="kicker">CONSTANCIA</span><h2>Racha de {weekSessions ? 1 : 0} semanas</h2><p>{weekSessions} esta semana · {sessions.length} entrenamientos registrados</p><Link href="/dashboard/progress">Ver progreso →</Link></div></section><section className="panel home-checkin"><div className="panel-head"><h2>Check-in semanal</h2><span>Comparte cómo vas con tu entrenador</span></div><form className="quick-checkin" action={submitCheckin}><label>Energía<select name="energy"><option>Alta</option><option>Media</option><option>Baja</option></select></label><label>Sueño<select name="sleep"><option>Excelente</option><option>Bueno</option><option>Regular</option><option>Malo</option></select></label><label>Notas<textarea name="notes" placeholder="Dolores, avances o dificultades"/></label><button className="button" type="submit">Enviar check-in</button></form></section></main>;
 }
