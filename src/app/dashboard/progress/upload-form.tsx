@@ -54,7 +54,7 @@ export function UploadForm() {
     }
   }
   return <form className="form-stack" action={upload}>
-    <label>Tipo<select name="kind"><option value="progress">Progreso</option><option value="profile">Perfil</option></select></label>
+    <input name="kind" type="hidden" value="progress"/>
     <label>Fotografía<input name="file" type="file" accept="image/jpeg,image/png,image/webp,image/heic" required /></label><p className="hint">JPG, PNG, WebP o HEIC · las imágenes grandes se comprimen automáticamente.</p>
     <label>Fecha de captura<input name="capturedAt" type="datetime-local" /></label>
     <label>Notas<textarea name="notes" placeholder="Frente, perfil, semana 4..." maxLength={500}/></label>

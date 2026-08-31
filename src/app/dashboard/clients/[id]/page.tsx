@@ -19,7 +19,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
   const [sessions, measures, photos, assignments, checkins] = await Promise.all([
     db.select().from(workoutSessions).where(eq(workoutSessions.clientId, id)).orderBy(desc(workoutSessions.completedAt)).limit(10),
     db.select().from(measurements).where(eq(measurements.clientId, id)).orderBy(desc(measurements.measuredAt)).limit(10),
-    db.select().from(mediaAssets).where(eq(mediaAssets.ownerId, id)).orderBy(desc(mediaAssets.createdAt)).limit(12),
+    db.select().from(mediaAssets).where(and(eq(mediaAssets.ownerId, id), eq(mediaAssets.kind, "progress"))).orderBy(desc(mediaAssets.createdAt)).limit(12),
     db.select().from(programAssignments).where(eq(programAssignments.clientId, id)).orderBy(desc(programAssignments.createdAt)).limit(5),
     db.select().from(weeklyCheckins).where(eq(weeklyCheckins.clientId, id)).orderBy(desc(weeklyCheckins.submittedAt)).limit(5),
   ]);
