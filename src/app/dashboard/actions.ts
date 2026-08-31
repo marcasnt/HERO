@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { getDb } from "@/db";
 import { clientInvites, coachClients, measurements, messages, notifications, programAssignments, users, weeklyCheckins, workoutSessions } from "@/db/schema";
 import { requireCoach, requireUser } from "@/lib/auth";
@@ -144,8 +144,9 @@ export async function updateClientGoals(form: FormData) {
 
 export async function markNotificationsRead() {
   const user = await requireUser();
-  await getDb().update(notifications).set({ readAt: new Date() }).where(eq(notifications.userId, user.id));
+  await getDb().update(notifications).set({ readAt: new Date() }).where(and(eq(notifications.userId, user.id), isNull(notifications.readAt)));
   revalidatePath("/dashboard/notifications");
+  revalidatePath("/dashboard", "layout");
 }
 
 export async function addMeasurement(form: FormData) {
