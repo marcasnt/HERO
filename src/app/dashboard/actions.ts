@@ -58,7 +58,11 @@ export async function completeWorkout(form: FormData) {
   if (!assignment) throw new Error("FORBIDDEN");
   const now = new Date();
   const prescribed = assignment.definition as { exercises?: Array<{ name: string; sets: number; series?: Array<{ reps: string; weight: number | null }> }> };
-  const exercises = (prescribed.exercises || []).map((exercise, exerciseIndex) => ({
+  let exerciseIndexes: number[] = [];
+  try { exerciseIndexes = JSON.parse(value(form, "exerciseIndexes")); } catch { exerciseIndexes = (prescribed.exercises || []).map((_, index) => index); }
+  const exercises = exerciseIndexes.map((exerciseIndex) => prescribed.exercises?.[exerciseIndex]).filter((exercise): exercise is NonNullable<typeof exercise> => Boolean(exercise)).map((exercise) => {
+    const exerciseIndex = prescribed.exercises?.indexOf(exercise) ?? 0;
+    return ({
     name: exercise.name,
     sets: Array.from({ length: exercise.series?.length || exercise.sets }, (_, setIndex) => ({
       prescribedReps: exercise.series?.[setIndex]?.reps || null,
@@ -67,7 +71,11 @@ export async function completeWorkout(form: FormData) {
       reps: Number(value(form, `reps-${exerciseIndex}-${setIndex}`)) || 0,
       rpe: Number(value(form, `rpe-${exerciseIndex}-${setIndex}`)) || null,
     })),
-  }));
+  }); });
+  const completedSets = exercises.flatMap((exercise) => exercise.sets).filter((set) => set.reps > 0);
+  const volume = Math.round(completedSets.reduce((total, set) => total + set.weight * set.reps, 0));
+  const startedAtMs = Number(value(form, "startedAt"));
+  const durationSeconds = Number.isFinite(startedAtMs) ? Math.max(1, Math.round((now.getTime() - startedAtMs) / 1000)) : 1;
   await getDb().insert(workoutSessions).values({
     clientId: user.id,
     assignmentId,
@@ -79,6 +87,7 @@ export async function completeWorkout(form: FormData) {
   });
   await getDb().insert(notifications).values({ userId: assignment.coachId, title: `${user.name} completó una rutina`, href: `/dashboard/clients/${user.id}` });
   revalidatePath("/dashboard");
+  return { durationSeconds, volume, series: completedSets.length, records: 0 };
 }
 
 export async function createInvite(form: FormData) {

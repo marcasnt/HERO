@@ -198,6 +198,30 @@ textarea { min-height:88px; resize:vertical; }
 .profile-photo img { object-fit:cover; }
 .profile-photo-card h2 { margin:4px 0; }
 .profile-photo-card p { margin:0 0 14px; color:var(--muted); }
+.muscle-summary { display:grid; grid-template-columns:minmax(180px,.7fr) minmax(250px,1fr); gap:24px; align-items:center; margin:18px 0 28px; padding:20px; border:1px solid var(--line); border-radius:20px; background:#0d100e; }
+.muscle-summary-copy h3 { margin:6px 0 12px; font-size:1.5rem; }
+.muscle-chips { display:flex; flex-wrap:wrap; gap:6px; }
+.muscle-chips span { padding:5px 9px; border-radius:999px; background:rgba(255,83,83,.12); color:#ff7777; font-size:.72rem; font-weight:750; }
+.hero-body-map { min-height:230px; display:flex; justify-content:center; gap:5px; }
+.hero-body-view { width:min(48%,190px); max-height:300px; }
+.hero-body-view path { stroke:#0d100e; stroke-width:2.5; stroke-linejoin:round; }
+.body-inert { fill:#343a36; }
+.body-muscle { fill:#292e2b; transition:fill .25s ease; }
+.body-muscle.level-1 { fill:#633234; }.body-muscle.level-2 { fill:#943b3e; }.body-muscle.level-3 { fill:#cd4549; }.body-muscle.level-4 { fill:#ff5353; }
+.body-map-loading { min-height:230px; display:grid; place-items:center; color:var(--muted); font-size:.78rem; }
+.workout-complete-overlay { position:fixed; z-index:100; inset:0; overflow:auto; display:grid; place-items:center; padding:22px; background:rgba(0,0,0,.82); backdrop-filter:blur(12px); }
+.workout-complete-card { width:min(620px,100%); padding:34px; border:1px solid var(--line); border-radius:28px; background:#101311; box-shadow:0 30px 100px rgba(0,0,0,.65); }
+.complete-trophy { display:block; margin:0 auto; color:var(--accent); }
+.workout-complete-card>h2 { margin:14px 0 22px; text-align:center; font-size:clamp(1.8rem,5vw,2.6rem); }
+.workout-complete-card>p { margin:24px 0 4px; color:var(--muted); }
+.complete-stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.complete-stats div { min-height:100px; display:grid; align-content:center; gap:7px; padding:18px; border-radius:18px; background:#1a1e1b; }
+.complete-stats span { color:var(--muted); }.complete-stats strong { font-size:1.3rem; }
+.workout-complete-card .muscle-summary.compact { grid-template-columns:1fr; padding:0; border:0; background:transparent; }
+.workout-complete-card .muscle-summary.compact .muscle-summary-copy { display:none; }
+.workout-complete-card .muscle-summary.compact .hero-body-map { min-height:250px; }
+.workout-complete-card>.button { width:100%; font-size:1.05rem; }
+@media (max-width:620px) { .muscle-summary{grid-template-columns:1fr}.muscle-summary-copy{text-align:center}.muscle-chips{justify-content:center}.hero-body-map{min-height:210px}.workout-complete-card{padding:24px 18px}.complete-stats div{min-height:86px;padding:14px}.complete-stats strong{font-size:1.05rem} }
 @media (max-width:520px) { .profile-photo-card{grid-template-columns:1fr;text-align:center}.profile-photo{margin:auto}.profile-photo-card .mini-button{margin:auto} }
 .analytics-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:18px; }
 .chart { min-height:190px; padding:20px; border:1px solid var(--line); border-radius:16px; background:var(--panel); }
