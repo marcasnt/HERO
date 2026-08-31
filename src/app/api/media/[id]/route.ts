@@ -29,7 +29,11 @@ export async function GET(_request: Request, context: Context) {
     const blob = await get(asset.blobUrl, { access: "private" });
     if (!blob || blob.statusCode !== 200) return Response.json({ error: "Archivo no encontrado" }, { status: 404 });
     return new Response(blob.stream, {
-      headers: { "Content-Type": asset.contentType, "Cache-Control": "private, max-age=300" },
+      headers: {
+        "Content-Type": asset.contentType,
+        "Cache-Control": "private, max-age=31536000, immutable",
+        "X-Content-Type-Options": "nosniff",
+      },
     });
   } catch (error) {
     return apiError(error);

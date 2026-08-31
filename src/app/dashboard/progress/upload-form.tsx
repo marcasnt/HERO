@@ -2,28 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
-async function compressForUpload(file: File) {
-  if (file.size <= 3.5 * 1024 * 1024) return file;
-  const bitmap = await createImageBitmap(file);
-  const maxSide = 2200;
-  const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.max(1, Math.round(bitmap.width * scale));
-  canvas.height = Math.max(1, Math.round(bitmap.height * scale));
-  const context = canvas.getContext("2d");
-  if (!context) throw new Error("No fue posible procesar la fotografía");
-  context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-  bitmap.close();
-  let quality = 0.86;
-  let blob: Blob | null = null;
-  do {
-    blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", quality));
-    quality -= 0.1;
-  } while (blob && blob.size > 3.8 * 1024 * 1024 && quality >= 0.45);
-  if (!blob || blob.size > 4 * 1024 * 1024) throw new Error("No fue posible reducir la fotografía por debajo de 4 MB");
-  return new File([blob], file.name.replace(/\.[^.]+$/, "") + "-hero.jpg", { type: "image/jpeg", lastModified: Date.now() });
-}
+import { optimizeImage } from "@/lib/client-image";
 
 export function UploadForm() {
   const router = useRouter();
@@ -37,8 +16,14 @@ export function UploadForm() {
     const capturedAt = String(formData.get("capturedAt") || "");
     if (capturedAt) formData.set("capturedAt", new Date(capturedAt).toISOString());
     try {
-      if (file.size > 3.5 * 1024 * 1024) setMessage("Comprimiendo fotografía…");
-      const optimized = await compressForUpload(file);
+      setMessage("Optimizando fotografía…");
+      const optimized = await optimizeImage(file, {
+        maxWidth: 1600,
+        maxHeight: 1600,
+        targetBytes: 1200 * 1024,
+        startQuality: 0.86,
+        fileName: file.name.replace(/\.[^.]+$/, "") + "-hero.jpg",
+      });
       formData.set("file", optimized);
       setMessage("Subiendo fotografía privada…");
       const response = await fetch("/api/media/upload", { method: "POST", body: formData });
@@ -55,7 +40,7 @@ export function UploadForm() {
   }
   return <form className="form-stack" action={upload}>
     <input name="kind" type="hidden" value="progress"/>
-    <label>Fotografía<input name="file" type="file" accept="image/jpeg,image/png,image/webp,image/heic" required /></label><p className="hint">JPG, PNG, WebP o HEIC · las imágenes grandes se comprimen automáticamente.</p>
+    <label>Fotografía<input name="file" type="file" accept="image/jpeg,image/png,image/webp,image/heic" required /></label><p className="hint">JPG, PNG, WebP o HEIC · cada imagen se optimiza antes de subirla.</p>
     <label>Fecha de captura<input name="capturedAt" type="datetime-local" /></label>
     <label>Notas<textarea name="notes" placeholder="Frente, perfil, semana 4..." maxLength={500}/></label>
     <button className="button" type="submit" disabled={busy}>{busy ? "Subiendo…" : "Guardar fotografía"}</button>
