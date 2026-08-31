@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { and, count, desc, eq } from "drizzle-orm";
+import Image from "next/image";
+import { and, count, desc, eq, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
-import { coachClients, measurements, programAssignments, users, weeklyCheckins, workoutSessions } from "@/db/schema";
+import { coachClients, measurements, mediaAssets, programAssignments, users, weeklyCheckins, workoutSessions } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { submitCheckin } from "./actions";
 
@@ -15,12 +16,17 @@ export default async function Dashboard() {
     const clients = await db.select({ id: users.id, name: users.name, email: users.email, startedAt: coachClients.startedAt })
       .from(coachClients).innerJoin(users, eq(users.id, coachClients.clientId))
       .where(eq(coachClients.coachId, user.id)).orderBy(desc(coachClients.startedAt));
+    const photos = clients.length ? await db.select({ id: mediaAssets.id, ownerId: mediaAssets.ownerId }).from(mediaAssets)
+      .where(and(eq(mediaAssets.kind, "profile"), inArray(mediaAssets.ownerId, clients.map((client) => client.id))))
+      .orderBy(desc(mediaAssets.createdAt)) : [];
+    const photoByClient = new Map<string, string>();
+    for (const photo of photos) if (!photoByClient.has(photo.ownerId)) photoByClient.set(photo.ownerId, photo.id);
     const [{ workouts }] = await db.select({ workouts: count() }).from(workoutSessions);
     const [{ checkins }] = await db.select({ checkins: count() }).from(weeklyCheckins);
     return <main className="dashboard"><div className="page-title"><div><span className="kicker">PANEL DEL ENTRENADOR</span><h1>Hola, {user.name.split(" ")[0]}</h1><p>Tu equipo y su ejecución, sin perder el pulso.</p></div><Link className="button" href="/dashboard/routines">+ Nueva rutina</Link></div>
       <section className="stats"><div><span>Clientes activos</span><strong>{clients.length}</strong></div><div><span>Sesiones completadas</span><strong>{Number(workouts)}</strong></div><div><span>Check-ins recibidos</span><strong>{Number(checkins)}</strong></div></section>
       <section className="panel"><div className="panel-head"><h2>Clientes</h2><span>{clients.length} en seguimiento</span></div>
-        {clients.length ? <div className="client-list">{clients.map((client) => <Link key={client.id} href={`/dashboard/clients/${client.id}`}><span className="avatar">{client.name.slice(0, 2).toUpperCase()}</span><span><b>{client.name}</b><small>{client.email || "Sin correo"}</small></span><i>Ver progreso →</i></Link>)}</div> : <div className="empty"><b>Aún no hay clientes vinculados</b><p>Genera una invitación privada y envíasela a tu primer cliente.</p><Link className="button" href="/dashboard/invitations">Crear invitación</Link></div>}
+        {clients.length ? <div className="client-list">{clients.map((client) => { const photoId = photoByClient.get(client.id); return <Link key={client.id} href={`/dashboard/clients/${client.id}`}><span className="avatar">{photoId ? <Image src={`/api/media/${photoId}`} alt="" width={42} height={42} unoptimized/> : client.name.slice(0, 2).toUpperCase()}</span><span><b>{client.name}</b><small>{client.email || "Sin correo"}</small></span><i>Ver progreso →</i></Link>; })}</div> : <div className="empty"><b>Aún no hay clientes vinculados</b><p>Genera una invitación privada y envíasela a tu primer cliente.</p><Link className="button" href="/dashboard/invitations">Crear invitación</Link></div>}
       </section>
     </main>;
   }
